@@ -1,0 +1,142 @@
+name: rometaCont
+title: 'ROMETA: Meta-analysis of Continuous Data'
+menuGroup: ROMETA
+menuTitle: Continuous Data (Two Groups)
+version: '1.0.0'
+jas: '1.2'
+
+description:
+    main: >
+        Meta-analysis of continuous outcomes comparing an intervention/experimental
+        group against a control group (standardized or raw mean difference). Pooling
+        and reporting aligned with the Cochrane Handbook, PRISMA and MOOSE
+        recommendations, built on top of the metafor package. Independent module;
+        not affiliated with or endorsed by Cochrane.
+
+options:
+  - name: data
+    type: Data
+
+  - name: m1
+    title: Intervention Group - Mean
+    type: Variable
+    suggested: [continuous]
+    permitted: [numeric]
+  - name: sd1
+    title: Intervention Group - SD
+    type: Variable
+    suggested: [continuous]
+    permitted: [numeric]
+  - name: n1
+    title: Intervention Group - N
+    type: Variable
+    suggested: [continuous]
+    permitted: [numeric]
+  - name: m2
+    title: Control Group - Mean
+    type: Variable
+    suggested: [continuous]
+    permitted: [numeric]
+  - name: sd2
+    title: Control Group - SD
+    type: Variable
+    suggested: [continuous]
+    permitted: [numeric]
+  - name: n2
+    title: Control Group - N
+    type: Variable
+    suggested: [continuous]
+    permitted: [numeric]
+
+  - name: labels
+    title: Study Labels
+    type: Variable
+    suggested: [nominal, ordinal]
+
+  - name: subgroup
+    title: Subgroup Variable (Categorical)
+    type: Variable
+    suggested: [nominal, ordinal]
+
+  - name: moderators
+    title: Meta-Regression Moderators
+    type: Variables
+    suggested: [continuous, nominal, ordinal]
+
+  - name: measure
+    title: Effect Measure
+    type: List
+    options:
+      - { name: SMDH, title: "Hedges' g (bias-corrected SMD)" }
+      - { name: SMD,  title: "Cohen's d (uncorrected SMD)" }
+      - { name: MD,   title: 'Raw Mean Difference (MD)' }
+    default: SMDH
+
+  - name: model
+    title: Model
+    type: List
+    options:
+      - { name: fixed,  title: 'Fixed effect (common effect)' }
+      - { name: random, title: 'Random effects' }
+    default: random
+
+  - name: tau2Method
+    title: Heterogeneity (τ²) estimator
+    type: List
+    options:
+      - { name: REML, title: 'Restricted ML (REML)' }
+      - { name: DL,   title: 'DerSimonian-Laird (RevMan)' }
+      - { name: ML,   title: 'Maximum likelihood (ML)' }
+      - { name: PM,   title: 'Paule-Mandel' }
+      - { name: SJ,   title: 'Sidik-Jonkman' }
+    default: REML
+
+  - name: hksj
+    title: Apply Hartung-Knapp-Sidik-Jonkman adjustment
+    type: Bool
+    default: true
+
+  - name: predInt
+    title: Prediction interval (random effects)
+    type: Bool
+    default: false
+
+  - name: subgroupModel
+    title: Subgroup variance assumption (random effects only)
+    type: List
+    options:
+      - { name: independent, title: 'Independent (separate τ²)' }
+      - { name: pooled,      title: 'Pooled (common τ², RevMan style)' }
+    default: independent
+
+  - name: pubBias
+    title: Assess publication bias (funnel, Egger, Begg)
+    type: Bool
+    default: false
+
+  - name: trimFill
+    title: Trim & Fill imputation (sensitivity analysis)
+    type: Bool
+    default: false
+
+  # ---- plots ----
+  - name: forest
+    title: Forest plot
+    type: Bool
+    default: true
+
+  - name: forestStyle
+    title: Forest Plot Style
+    type: List
+    options:
+      - { name: modern,  title: 'Modern (forestploter)' }
+      - { name: classic, title: 'Classic (metafor)' }
+    default: modern
+
+  - name: forestTheme
+    title: Forest Plot Theme
+    type: List
+    options:
+      - { name: lime, title: 'Lime Green' }
+      - { name: gray, title: 'Grayscale' }
+    default: lime
