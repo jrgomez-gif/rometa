@@ -60,8 +60,9 @@ jobs:
             $found = Get-ChildItem "C:\Program Files (x86)\jamovi*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
           }
           if (-not $found) { throw "jamovi installation folder not found" }
-          Write-Host "jamovi found at: $($found.FullName)"
-          echo "path=$($found.FullName)" >> $env:GITHUB_OUTPUT
+          $cleanPath = $found.FullName -replace '\\','/'
+          Write-Host "jamovi found at: $cleanPath"
+          echo "path=$cleanPath" >> $env:GITHUB_OUTPUT
 
       - name: Prepare jamovi module (generates .b.R base classes / headers)
         shell: pwsh
