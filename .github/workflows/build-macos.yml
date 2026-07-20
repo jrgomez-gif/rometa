@@ -38,24 +38,10 @@ jobs:
           brew install --cask jamovi
           ls -la /Applications/ | grep -i jamovi
 
-      - name: Debug - inspect jamovi.app structure
-        run: |
-          echo "--- Top level of jamovi.app ---"
-          ls -la /Applications/jamovi.app
-          echo "--- Contents/ ---"
-          ls -la /Applications/jamovi.app/Contents
-          echo "--- Contents/Resources/ (if exists) ---"
-          ls -la /Applications/jamovi.app/Contents/Resources 2>/dev/null || echo "no Resources folder"
-          echo "--- Contents/MacOS/ (if exists) ---"
-          ls -la /Applications/jamovi.app/Contents/MacOS 2>/dev/null || echo "no MacOS folder"
-          echo "--- searching for jamovi-compiler or node_modules anywhere inside ---"
-          find /Applications/jamovi.app -iname "*compiler*" 2>/dev/null | head -20
-          find /Applications/jamovi.app -iname "jamovi.exe" -o -iname "jamovi.bin" -o -iname "jamovi" 2>/dev/null | head -20
-
-      - name: Locate jamovi.app Contents folder
+      - name: Locate jamovi.app folder
         id: jamovi_home
         run: |
-          APP_PATH="/Applications/jamovi.app/Contents"
+          APP_PATH="/Applications/jamovi.app"
           if [ ! -d "$APP_PATH" ]; then
             echo "jamovi.app not found at expected location"
             exit 1
