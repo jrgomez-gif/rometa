@@ -48,7 +48,22 @@ jobs:
       - name: Download jamovi Desktop installer
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri "https://www.jamovi.org/downloads/jamovi-2.7.37.0-win64.exe" -OutFile "jamovi-installer.exe"
+          $ProgressPreference = 'SilentlyContinue'
+          Invoke-WebRequest -Uri "https://www.jamovi.org/downloads/jamovi-2.7.37.0-win64.exe" -OutFile "jamovi-installer.exe" -UserAgent "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -UseBasicParsing
+
+      - name: Verify installer is a valid executable
+        shell: pwsh
+        run: |
+          $bytes = [System.IO.File]::ReadAllBytes("jamovi-installer.exe")
+          $size = $bytes.Length
+          Write-Host "Downloaded file size: $size bytes"
+          $header = [System.Text.Encoding]::ASCII.GetString($bytes[0..1])
+          if ($header -ne "MZ") {
+            Write-Host "--- File is NOT a valid EXE. First 500 bytes as text: ---"
+            [System.Text.Encoding]::UTF8.GetString($bytes[0..([Math]::Min(500, $size-1))])
+            throw "Downloaded file is not a valid Windows executable (missing MZ header). See content above."
+          }
+          Write-Host "Valid EXE header confirmed (MZ)."
 
       - name: Install jamovi Desktop silently
         shell: pwsh
