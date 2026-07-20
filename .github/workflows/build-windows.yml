@@ -39,6 +39,10 @@ jobs:
         run: |
           Rscript -e "remotes::install_github('jamovi/jmvtools', dependencies = FALSE, upgrade = 'never')"
 
+      - name: Verify jmvtools installed correctly
+        run: |
+          Rscript -e "if (!requireNamespace('jmvtools', quietly = TRUE)) stop('jmvtools NOT installed') else cat('jmvtools OK, version:', as.character(packageVersion('jmvtools')), '\n')"
+
       - name: Install package dependencies (metafor, forestploter, R6, etc.)
         run: |
           Rscript -e "install.packages(c('R6','metafor','forestploter'), repos = 'https://cran.r-project.org')"
