@@ -45,13 +45,38 @@ jobs:
         run: |
           Rscript -e "install.packages(c('R6','metafor','forestploter'), repos = 'https://cran.r-project.org')"
 
-      - name: Prepare jamovi module (generates .b.R base classes / headers)
+      - name: Download jamovi Desktop installer
+        shell: pwsh
         run: |
-          Rscript -e "jmvtools::prepare('.')"
+          Invoke-WebRequest -Uri "https://www.jamovi.org/downloads/jamovi-2.7.37.0-win64.exe" -OutFile "jamovi-installer.exe"
+
+      - name: Install jamovi Desktop silently
+        shell: pwsh
+        run: |
+          Start-Process -FilePath ".\jamovi-installer.exe" -ArgumentList "/S" -Wait
+          Start-Sleep -Seconds 10
+
+      - name: Locate jamovi installation folder
+        id: jamovi_home
+        shell: pwsh
+        run: |
+          $found = Get-ChildItem "C:\Program Files\jamovi*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $found) {
+            $found = Get-ChildItem "C:\Program Files (x86)\jamovi*" -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+          }
+          if (-not $found) { throw "jamovi installation folder not found" }
+          Write-Host "jamovi found at: $($found.FullName)"
+          echo "path=$($found.FullName)" >> $env:GITHUB_OUTPUT
+
+      - name: Prepare jamovi module (generates .b.R base classes / headers)
+        shell: pwsh
+        run: |
+          Rscript -e "jmvtools::prepare('.', home='${{ steps.jamovi_home.outputs.path }}')"
 
       - name: Build .jmo package
+        shell: pwsh
         run: |
-          Rscript -e "jmvtools::install('.', home=tempdir())"
+          Rscript -e "jmvtools::install('.', home='${{ steps.jamovi_home.outputs.path }}')"
 
       - name: Locate built .jmo
         id: locate
