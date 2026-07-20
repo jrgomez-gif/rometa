@@ -29,9 +29,13 @@ jobs:
         run: |
           Rscript -e "install.packages('remotes', repos = 'https://cran.r-project.org')"
 
-      - name: Install jmvtools and jmvcore from the jamovi repo
+      - name: Install jmvcore (from CRAN)
         run: |
-          Rscript -e "install.packages(c('jmvtools','jmvcore'), repos = c('https://repo.jamovi.org','https://cran.r-project.org'))"
+          Rscript -e "install.packages('jmvcore', repos = 'https://cran.r-project.org')"
+
+      - name: Install jmvtools (from source, via GitHub)
+        run: |
+          Rscript -e "remotes::install_github('jamovi/jmvtools', dependencies = FALSE, upgrade = 'never')"
 
       - name: Install package dependencies (metafor, forestploter, R6, etc.)
         run: |
