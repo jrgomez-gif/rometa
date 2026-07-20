@@ -33,11 +33,20 @@ jobs:
         run: |
           Rscript -e "install.packages('jmvcore', repos = 'https://cran.r-project.org')"
 
+      - name: Set up Node.js (system runtime, required by the R 'node' package)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install the R 'node' package (jmvtools dependency)
+        run: |
+          Rscript -e "install.packages('node', repos = 'https://cran.r-project.org')"
+
       - name: Install jmvtools (from source, via GitHub)
         env:
           GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          Rscript -e "remotes::install_github('jamovi/jmvtools', dependencies = FALSE, upgrade = 'never')"
+          Rscript -e "options(warn = 2); remotes::install_github('jamovi/jmvtools', dependencies = FALSE, upgrade = 'never', force = TRUE)"
 
       - name: Verify jmvtools installed correctly
         run: |
