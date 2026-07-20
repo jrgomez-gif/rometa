@@ -1,0 +1,92 @@
+name: Build ROMETA for macOS
+
+# Se ejecuta manualmente desde la pestaña "Actions" de GitHub,
+# o automáticamente al hacer push de un tag de versión (ej. v2.3.0)
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-14      # Apple Silicon (arm64)
+            arch_label: arm64
+          - os: macos-13      # Intel (x86_64)
+            arch_label: intel
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.0'   # ajustar si tu jamovi usa otra versión menor
+
+      - name: Set up Pandoc (a veces requerido por jmvtools)
+        uses: r-lib/actions/setup-pandoc@v2
+
+      - name: Install jamovi Desktop via Homebrew Cask
+        run: |
+          brew install --cask jamovi
+          ls -la /Applications/ | grep -i jamovi
+
+      - name: Locate jamovi.app Contents folder
+        id: jamovi_home
+        run: |
+          APP_PATH="/Applications/jamovi.app/Contents"
+          if [ ! -d "$APP_PATH" ]; then
+            echo "jamovi.app not found at expected location"
+            exit 1
+          fi
+          echo "jamovi found at: $APP_PATH"
+          echo "path=$APP_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: Install system dependencies for R packages
+        run: |
+          Rscript -e "install.packages('remotes', repos = 'https://cran.r-project.org')"
+
+      - name: Install jmvcore (from CRAN)
+        run: |
+          Rscript -e "install.packages('jmvcore', repos = 'https://cran.r-project.org')"
+
+      - name: Install node + jmvtools from source (repo.jamovi.org)
+        run: |
+          Rscript -e "install.packages(c('node','jmvtools'), repos = c('https://repo.jamovi.org','https://cran.r-project.org'), type = 'source')"
+
+      - name: Verify jmvtools installed correctly
+        run: |
+          Rscript -e "if (!requireNamespace('jmvtools', quietly = TRUE)) stop('jmvtools NOT installed') else cat('jmvtools OK, version:', as.character(packageVersion('jmvtools')), '\n')"
+
+      - name: Install package dependencies (metafor, forestploter, R6, etc.)
+        run: |
+          Rscript -e "install.packages(c('R6','metafor','forestploter'), repos = 'https://cran.r-project.org')"
+
+      - name: Prepare jamovi module (generates .b.R base classes / headers)
+        run: |
+          Rscript -e "jmvtools::prepare('.', home='${{ steps.jamovi_home.outputs.path }}')"
+
+      - name: Build .jmo package
+        run: |
+          Rscript -e "jmvtools::install('.', home='${{ steps.jamovi_home.outputs.path }}')"
+
+      - name: Locate built .jmo
+        id: locate
+        run: |
+          FILE=$(find . -maxdepth 2 -iname "*.jmo" | head -n 1)
+          echo "Found: $FILE"
+          echo "jmo_path=$FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload .jmo as build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ROMETA-macos-${{ matrix.arch_label }}-jmo
+          path: ${{ steps.locate.outputs.jmo_path }}
+          if-no-files-found: error
